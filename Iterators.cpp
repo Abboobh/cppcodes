@@ -1,32 +1,50 @@
-template<typename T>
-void PrintRange(T begin, T end)
-{
-    while (begin != end)
-    {
-        cout << *begin << " ";
-        begin++;
+#include <algorithm>
+#include <iostream>
+#include <set>
+#include <string>
+#include <vector>
+
+
+using namespace std;
+
+template <typename It>
+void PrintRange(It range_begin, It range_end) {
+    for (auto it = range_begin; it != range_end; ++it) {
+        cout << *it << " "s;
     }
     cout << endl;
 }
-
-
-
-template<typename Container, typename Type>
-void FindAndPrint(Container value, Type var)
+template <typename It>
+auto MakeSet(It range_begin, It range_end) {
+    return set(range_begin, range_end);
+}
+template <typename It>
+auto MakeVector(It range_begin, It range_end) {
+    return vector(range_begin, range_end);
+}
+template <typename Container, typename Iterator>
+void EraseAndPrint(Container& container, Iterator it) 
 {
-    auto range_begin = value.begin();
-    auto range_end = find_if(value.begin(), value.end(), [var](Type _type) {return _type == var; });
+    auto it_to_erased = container.erase(it);
+    PrintRange(container.begin(), it_to_erased);
+    PrintRange(it_to_erased, container.end());
+}
+template <typename Container>
+void EraseAndPrint(Container& container, int it)
+{
+    EraseAndPrint(container, container.begin() + it);
+}
+template <typename Container>
+void EraseAndPrint(Container& container, int position, int range_begin, int range_end) {
+    container.erase(container.begin() + position);
+    PrintRange(container.begin(), container.end());
+    container.erase(container.begin() + range_begin, container.begin() + range_end);
+    PrintRange(container.begin(), container.end());
+}
 
-    while (range_begin != range_end)
-    {
-        cout << *range_begin << " ";
-        range_begin++;
-    }
-    cout << endl;
-    while (range_end != value.end())
-    {
-        cout << *range_end << " ";
-        range_end++;
-    }
-    cout << endl;
+int main() {
+    //vector<string> langs = { "Python"s, "Java"s, "C#"s, "Ruby"s, "C++"s };
+    string langs = "Chepa";
+    EraseAndPrint(langs, 2, 0, 2);
+    return 0;
 }
