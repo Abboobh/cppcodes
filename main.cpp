@@ -1,65 +1,34 @@
-#include <iostream>
-#include <vector>
+#include "document.h"
+#include "paginator.h"
+#include "read_input_functions.h"
+#include "string_processing.h"
+#include "search_server.h"
+#include "request_queue.h"
 
 using namespace std;
 
-struct Document {
-    int id;
-    int rating;
-};
-
-
-
-vector<Document> SortDocument(vector<Document> _documents)
-{
-    vector<Document> sortedDocumen(static_cast<int>(_documents.size()));
-
-    for (int i = 0; i < static_cast<int>(sortedDocumen.size()); i++)
-    {
-        if (i == 0)
-        {
-            int max = 0;
-            int maxIndex = 0;
-            for (size_t j = 0; j < _documents.size(); j++)
-            {
-                if (_documents[j].rating > max)
-                {
-                    max = _documents[j].rating;
-                    maxIndex = j;
-                }
-            }
-            sortedDocumen.push_back(_documents[maxIndex]);
-        }
-        else
-        {
-            for (int j = 0; j < static_cast<int>(_documents.size()); j++)
-            {
-                int max = 0;
-                int maxIndex = 0;
-                if (_documents[j].rating > max && _documents[j].rating < _documents[j - 1].rating)
-                {
-                    max = _documents[j].rating;
-                    maxIndex = j;
-                }
-                sortedDocumen.push_back(_documents[maxIndex]);
-            }
-        }
-    }
-
-    return sortedDocumen;
-}
-
-void PrintDocuments(vector<Document> documents, size_t skip_start, size_t skip_finish) {
-    // РѕС‚СЃРѕСЂС‚РёСЂРѕРІР°С‚СЊ РґРѕРєСѓРјРµРЅС‚С‹ Рё РІС‹РІРµСЃС‚Рё РЅРµ РІСЃРµ
-
-    vector<Document> sortedDocumen = SortDocument(documents);
-
-    for (size_t i = skip_start; i <= skip_finish; i++)
-    {
-        cout << "{ id = " << documents[i].id << ", rating = " << documents[i].rating << "}" << endl;
-    }
-}
-
 int main() {
-    PrintDocuments({ {100, 5}, {101, 7}, {102, -4}, {103, 9}, {104, 1} }, 1, 2);
+    setlocale(LC_ALL, "Russian");
+
+    SearchServer search_server("and in at"s);
+    RequestQueue request_queue(search_server);
+
+    search_server.AddDocument(1, "curly cat curly tail"s, DocumentStatus::ACTUAL, { 7, 2, 7 });
+    search_server.AddDocument(2, "curly dog and fancy collar"s, DocumentStatus::ACTUAL, { 1, 2, 3 });
+    search_server.AddDocument(3, "big cat fancy collar "s, DocumentStatus::ACTUAL, { 1, 2, 8 });
+    search_server.AddDocument(4, "big dog sparrow Eugene"s, DocumentStatus::ACTUAL, { 1, 3, 2 });
+    search_server.AddDocument(5, "big dog sparrow Vasiliy"s, DocumentStatus::ACTUAL, { 1, 1, 1 });
+
+    // 1439 запросов с нулевым результатом
+    for (int i = 0; i < 1439; ++i) {
+        request_queue.AddFindRequest("empty request"s);
+    }
+    // все еще 1439 запросов с нулевым результатом
+    request_queue.AddFindRequest("curly dog"s);
+    // новые сутки, первый запрос удален, 1438 запросов с нулевым результатом
+    request_queue.AddFindRequest("big collar"s);
+    // первый запрос удален, 1437 запросов с нулевым результатом
+    request_queue.AddFindRequest("sparrow"s);
+    cout << "Total empty requests: "s << request_queue.GetNoResultRequests() << endl;
+    return 0;
 }
